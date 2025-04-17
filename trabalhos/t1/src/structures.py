@@ -8,9 +8,17 @@ import math
 import re
 
 class Direction(Enum):
-    LEFT = auto()
-    RIGHT = auto()
-    STAY = auto()
+    LEFT = -1
+    STAY = 0
+    RIGHT = 1
+
+    def __str__(self):
+        if self == self.LEFT:
+            return '-'
+        elif self == self.RIGHT:
+            return '+'
+        else:
+            return str(self.value)
 
 @dataclass(eq=True)
 class State:
@@ -30,7 +38,7 @@ class QuintupleTransition:
     acts: List[QuintupleAct]
 
     def parse(line: str) -> Self:
-        p = re.compile(r'\((?P<source>\d+),(?P<read>.+)\)=\((?P<destination>\d+),(?P<write>.+),(?P<shift>[RL])\)')
+        p = re.compile(r'\((?P<source>\d+),(?P<read>.+)\)=\((?P<destination>\d+),(?P<write>.+),(?P<shift>[RLS])\)')
         match = p.match(line)
 
         if not match:
@@ -42,6 +50,12 @@ class QuintupleTransition:
         write_symbol = match.group("write")
         shift = match.group("shift")
 
+        direction_map = {
+            'L': Direction.LEFT,
+            'R': Direction.RIGHT,
+            'S': Direction.STAY
+        }
+
         return QuintupleTransition(
             source_state=source_state,
             destination_state=destination_state,
@@ -49,7 +63,7 @@ class QuintupleTransition:
                 QuintupleAct(
                     read=read_symbol,
                     write=write_symbol,
-                    direction=Direction.LEFT if shift == "L" else Direction.RIGHT
+                    direction=direction_map[shift]
                 )
             ]
         )
@@ -94,9 +108,30 @@ class QuadrupleTransition:
 
         return True
     
+    def __str__(self):
+        inputs = []
+        outputs = []
+        
+        for act in self.acts:
+            if act.kind == QuadrupleActType.SHIFT:
+                inputs.append('/')
+                outputs.append(str(act.direction))
+            elif act.kind == QuadrupleActType.READ_WRITE:
+                inputs.append(str(act.read))
+                outputs.append(str(act.write))
+        
+        result = self.source_state
+        result += f'[{" ".join(inputs)}]'
+        result += ' -> '
+        result += f'[{" ".join(outputs)}]'
+        result += self.destination_state
+
+        return result
+    
 @dataclass
 class QuintupleTuringMachineDefinition:
     tapes: int
+    alphabet: List[Any]
     transitions: List[QuintupleTransition]
     initial_state: str
     final_states: List[str]
@@ -104,6 +139,7 @@ class QuintupleTuringMachineDefinition:
 @dataclass
 class QuadrupleTuringMachineDefinition:
     tapes: int
+    alphabet: List[Any]
     transitions: List[QuadrupleTransition]
     initial_state: str
     final_states: List[str]
@@ -130,12 +166,7 @@ class Tape:
         self.content[self.head] = mark
 
     def shift(self, direction: Direction):
-        if direction == Direction.LEFT:
-            self.head -= 1
-        elif direction == Direction.RIGHT:
-            self.head += 1
-        else:
-            self.head = self.head
+        self.head += direction.value
     
     def overwrite(self, content: List[Any]):
         self.content.clear()
@@ -167,12 +198,8 @@ class QuadrupleTuringMachineSimulator:
         return False
     
     def step(self):
-
         heads = [tape.head for tape in self.tapes]
-        data = [tape.read() for tape in self.tapes]
-        transition = self.definition.find_matching_transition(self.current_state, data)
-
-        print(f"State: {self.current_state}, Head: {heads}, Data: {data}, Transition: {transition}")
+        transition = self.find_next_transition()
 
         if transition is None:
             return False
@@ -186,6 +213,10 @@ class QuadrupleTuringMachineSimulator:
         self.current_state = transition.destination_state
 
         return True
+    
+    def find_next_transition(self) -> Optional[QuadrupleTransition]:
+        data = [tape.read() for tape in self.tapes]
+        return self.definition.find_matching_transition(self.current_state, data)
     
     def has_halted(self) -> bool:
         return self.has_accepted() or self.has_rejected()
