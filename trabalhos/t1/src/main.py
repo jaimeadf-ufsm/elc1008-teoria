@@ -1,4 +1,5 @@
 from structures import *
+from gui import *
 
 def read_quintuple_machine_definition():
     quintuple_machine_definition = QuintupleTuringMachineDefinition(
@@ -134,36 +135,8 @@ if __name__ == '__main__':
 
     quadruple_machine_simulator.tapes[0].overwrite(initial_state)
 
-    for transition in quadruple_machine_definition.transitions:
-        print(transition)
-    
-    step = 0
-    
-    print()
-    print(f'Step {step}:')
-    print_tape(quadruple_machine_simulator.tapes[0], 0, 20)
-    print_tape(quadruple_machine_simulator.tapes[1],0, 20)
-    print_tape(quadruple_machine_simulator.tapes[2], 0, 20)
-
-    while not quadruple_machine_simulator.has_halted():
-        step += 1
-        
-        transition = quadruple_machine_simulator.find_next_transition()
-        
-        print()
-        print(f'Step {step}:')
-        print(transition)
-
-        quadruple_machine_simulator.step()
-
-        # print("Working tape:")
-        print_tape(quadruple_machine_simulator.tapes[0], 0, 20)
-        # print("")
-        # print("History tape:") 
-        print_tape(quadruple_machine_simulator.tapes[1],0, 20)
-        # print("")
-        # print("Output tape:") 
-        print_tape(quadruple_machine_simulator.tapes[2], 0, 20)
+    gui = TuringMachineGUI(quadruple_machine_simulator, quadruple_machine_definition.transitions)
+    gui.run()
     
 
 
