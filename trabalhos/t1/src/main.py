@@ -44,7 +44,7 @@ def create_reversible_machine(quintuple_machine_definition: QuintupleTuringMachi
         alphabet=[],
         transitions=[],
         initial_state='A_'+ quintuple_machine_definition.initial_state,
-        final_states=['A_' + quintuple_machine_definition.final_states[0]]
+        final_states=['C_'+ quintuple_machine_definition.initial_state]
     )
 
     m = 1
@@ -74,7 +74,99 @@ def create_reversible_machine(quintuple_machine_definition: QuintupleTuringMachi
             )
         )
 
+        # C states (retrace)
+        quadruple_machine_definition.transitions.append(
+            QuadrupleTransition(
+                source_state="C_" + quintuple_transition.destination_state,
+                destination_state="C'_" + str(m),
+                acts=[
+                    QuadrupleAct.shift(Direction(-quintuple_transition.acts[0].direction.value)),
+                    QuadrupleAct.read_write(m, "B"),
+                    QuadrupleAct.shift(Direction.STAY),
+                ]
+            )
+        )
+
+        quadruple_machine_definition.transitions.append(
+            QuadrupleTransition(
+                source_state="C'_" + str(m),
+                destination_state="C_" + quintuple_transition.source_state,
+                acts=[
+                    QuadrupleAct.read_write(quintuple_transition.acts[0].write, quintuple_transition.acts[0].read),
+                    QuadrupleAct.shift(Direction.LEFT),
+                    QuadrupleAct.read_write("B", "B"),
+                ]
+            )
+        )
+
         m += 1
+
+    # B states (copy output)
+    quadruple_machine_definition.transitions.append(
+        QuadrupleTransition(
+            source_state="A_"+quintuple_machine_definition.final_states[0],
+            destination_state="B'_1",
+            acts=[
+                QuadrupleAct.read_write("B", "B"),
+                QuadrupleAct.shift(Direction.STAY),
+                QuadrupleAct.read_write("B", "B"),
+            ]
+        )
+    )
+
+    for tape_symbol in quintuple_machine_definition.alphabet:
+        quadruple_machine_definition.transitions.append(
+            QuadrupleTransition(
+                source_state="B_1",
+                destination_state=("B'_1" if tape_symbol != "B"
+                    else "B'_2"),
+                acts=[
+                    QuadrupleAct.read_write(tape_symbol, tape_symbol),
+                    QuadrupleAct.shift(Direction.STAY),
+                    QuadrupleAct.read_write("B", tape_symbol),
+                ]
+            )
+        )
+
+        quadruple_machine_definition.transitions.append(
+            QuadrupleTransition(
+                source_state="B_2",
+                destination_state=("B'_2" if tape_symbol != "B"
+                    else "C_" + quintuple_machine_definition.final_states[0]),
+                acts=[
+                    QuadrupleAct.read_write(tape_symbol, tape_symbol),
+                    QuadrupleAct.shift(Direction.STAY),
+                    QuadrupleAct.read_write(tape_symbol, tape_symbol),
+                ]
+            )
+        )
+
+    quadruple_machine_definition.transitions.append(
+        QuadrupleTransition(
+            source_state="B'_1",
+            destination_state="B_1",
+            acts=[
+                QuadrupleAct.shift(Direction.RIGHT),
+                QuadrupleAct.shift(Direction.STAY),
+                QuadrupleAct.shift(Direction.RIGHT),
+            ]
+        )
+    )
+
+    quadruple_machine_definition.transitions.append(
+        QuadrupleTransition(
+            source_state="B'_2",
+            destination_state="B_2",
+            acts=[
+                QuadrupleAct.shift(Direction.LEFT),
+                QuadrupleAct.shift(Direction.STAY),
+                QuadrupleAct.shift(Direction.LEFT),
+            ]
+        )
+    )
+
+    #for transition in quadruple_machine_definition.transitions:
+    #    print(transition)
 
     return quadruple_machine_definition
 
