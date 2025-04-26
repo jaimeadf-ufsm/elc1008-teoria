@@ -4,6 +4,7 @@ from enum import Enum, auto
 
 from direction import Direction
 from tape import Tape
+from mark import format_mark
 
 class QuadrupleActType(Enum):
     SHIFT = auto()
@@ -54,8 +55,8 @@ class QuadrupleTransition:
                 inputs.append('/')
                 outputs.append(str(act.direction))
             elif act.kind == QuadrupleActType.READ_WRITE:
-                inputs.append(str(act.read))
-                outputs.append(str(act.write))
+                inputs.append(format_mark(act.read))
+                outputs.append(format_mark(act.write))
         
         result = self.source_state
         result += f'[{" ".join(inputs)}]'
@@ -123,3 +124,4 @@ class QuadrupleTuringMachineSimulator:
     def _find_next_transition(self) -> Optional[QuadrupleTransition]:
         data = [tape.read() for tape in self.tapes]
         return self.definition.find_matching_transition(self.current_state, data)
+        

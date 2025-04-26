@@ -1,6 +1,7 @@
 import pygame
 
 from tape import Tape
+from mark import format_mark
 
 CELL_SIZE = 50
 CELL_PADDING = 2
@@ -51,10 +52,7 @@ class TapeView:
         pygame.draw.rect(screen, color, cell_rect)
         pygame.draw.rect(screen, COLORS['text'], cell_rect, 1)
         
-        value = self.tape.content.get(cell_pos, "B")
-
-        if isinstance(value, str):
-            value = f"'{value}'" if value != "B" else ""
+        value = format_mark(self.tape.content.get(cell_pos, "B"))
 
         text = font.render(str(value), True, COLORS['text'])
         screen.blit(text, text.get_rect(center=cell_rect.center))
