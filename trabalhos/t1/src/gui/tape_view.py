@@ -54,7 +54,7 @@ class TapeView:
         value = self.tape.content.get(cell_pos, "B")
 
         if isinstance(value, str):
-            value = f"'{value}'"
+            value = f"'{value}'" if value != "B" else ""
 
         text = font.render(str(value), True, COLORS['text'])
         screen.blit(text, text.get_rect(center=cell_rect.center))
