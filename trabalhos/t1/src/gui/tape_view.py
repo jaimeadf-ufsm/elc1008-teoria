@@ -1,5 +1,6 @@
 import pygame
-from structures import Tape
+
+from tape import Tape
 
 CELL_SIZE = 50
 CELL_PADDING = 2
@@ -13,7 +14,7 @@ COLORS = {
     'head': (220, 20, 60)
 }
 
-class TapeGUI:
+class TapeView:
     def __init__(self, tape: Tape, y_position: int, label: str, visible_cells=16):
         self.tape = tape
         self.y_position = y_position
@@ -51,6 +52,10 @@ class TapeGUI:
         pygame.draw.rect(screen, COLORS['text'], cell_rect, 1)
         
         value = self.tape.content.get(cell_pos, "B")
+
+        if isinstance(value, str):
+            value = f"'{value}'"
+
         text = font.render(str(value), True, COLORS['text'])
         screen.blit(text, text.get_rect(center=cell_rect.center))
         

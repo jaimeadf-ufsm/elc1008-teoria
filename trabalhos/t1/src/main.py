@@ -1,5 +1,8 @@
-from structures import *
-from gui import *
+from direction import Direction
+from quintuple_turing_machine import QuintupleTransition, QuintupleTuringMachineDefinition
+from quadruple_turing_machine import QuadrupleAct, QuadrupleTransition, QuadrupleTuringMachineDefinition, QuadrupleTuringMachineSimulator
+
+from gui.gui import GUI
 
 def read_quintuple_machine_definition():
     quintuple_machine_definition = QuintupleTuringMachineDefinition(
@@ -74,7 +77,6 @@ def create_reversible_machine(quintuple_machine_definition: QuintupleTuringMachi
             )
         )
 
-        # C states (retrace)
         quadruple_machine_definition.transitions.append(
             QuadrupleTransition(
                 source_state="C_" + quintuple_transition.destination_state,
@@ -165,58 +167,7 @@ def create_reversible_machine(quintuple_machine_definition: QuintupleTuringMachi
         )
     )
 
-    #for transition in quadruple_machine_definition.transitions:
-    #    print(transition)
-
     return quadruple_machine_definition
-
-# def print_tape(tape: Tape, start: int, end: int):
-#     size = end - start
-    
-#     head_line = ""
-#     content_line = ""
-
-#     for i in range(start, end):
-#         head_line += ('v' if tape.head == i else " ").rjust(3)
-#         content_line += str(tape.content.get(i, 'B')).rjust(3)
-    
-#     print(head_line)
-#     print(content_line)
-
-def print_tape(tape: Tape, start: int, end: int):
-    size = end - start
-    
-    head_line = ""
-    content_line = ""
-
-    for i in range(start, end):
-        mark = '*' if tape.head == i else " "
-        mark += str(tape.content.get(i, 'B'))
-        content_line += mark.rjust(4)
-
-    
-    print(content_line)
-
-# def print_tape(tape: Tape, start: int, end: int):
-#     size = end - start
-    
-#     head_line = ''
-#     content_line = ['|']
-
-#     for i in range(start, end):
-#         mark = str(tape.content.get(i, 'B'))
-
-#         content_line.append(mark.rjust(4))
-#         content_line.append('|')
-    
-#     if tape.head >= start and tape.head < end:
-#         relative = (tape.head - start) * 2
-        
-#         content_line[relative] = '['
-#         content_line[relative + 2] = ']'
-
-    
-#     print(''.join(content_line))
 
 if __name__ == '__main__':
     quintuple_machine_definition = read_quintuple_machine_definition()
@@ -225,12 +176,8 @@ if __name__ == '__main__':
     quadruple_machine_definition = create_reversible_machine(quintuple_machine_definition)
     quadruple_machine_simulator = QuadrupleTuringMachineSimulator(quadruple_machine_definition)
 
-    quadruple_machine_simulator.tapes[0].overwrite(initial_state)
+    quadruple_machine_simulator.tapes[0].overwrite(initial_state, 1)
 
-    gui = TuringMachineGUI(quadruple_machine_simulator, quadruple_machine_definition.transitions)
+    gui = GUI(quadruple_machine_simulator, quadruple_machine_definition.transitions)
     gui.run()
-    
-
-
-
-
+ 

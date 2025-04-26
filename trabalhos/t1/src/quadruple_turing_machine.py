@@ -1,72 +1,9 @@
-
-
-from dataclasses import dataclass, field
+from typing import Any, Optional, List
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import List, Dict, Optional, Any, Self
 
-import math
-import re
-
-class Direction(Enum):
-    LEFT = -1
-    STAY = 0
-    RIGHT = 1
-
-    def __str__(self):
-        if self == self.LEFT:
-            return '-'
-        elif self == self.RIGHT:
-            return '+'
-        else:
-            return str(self.value)
-
-@dataclass(eq=True)
-class State:
-    id: int
-    label: str
-
-@dataclass
-class QuintupleAct:
-    read: Any
-    write: Any
-    direction: Direction
-
-@dataclass
-class QuintupleTransition:
-    source_state: int
-    destination_state: int
-    acts: List[QuintupleAct]
-
-    def parse(line: str) -> Self:
-        p = re.compile(r'\((?P<source>\d+),(?P<read>.+)\)=\((?P<destination>\d+),(?P<write>.+),(?P<shift>[RLS])\)')
-        match = p.match(line)
-
-        if not match:
-            raise ValueError(f"Invalid quintuple format: {line}")
-        
-        source_state = match.group("source")
-        read_symbol = match.group("read")
-        destination_state = match.group("destination")
-        write_symbol = match.group("write")
-        shift = match.group("shift")
-
-        direction_map = {
-            'L': Direction.LEFT,
-            'R': Direction.RIGHT,
-            'S': Direction.STAY
-        }
-
-        return QuintupleTransition(
-            source_state=source_state,
-            destination_state=destination_state,
-            acts=[
-                QuintupleAct(
-                    read=read_symbol,
-                    write=write_symbol,
-                    direction=direction_map[shift]
-                )
-            ]
-        )
+from direction import Direction
+from tape import Tape
 
 class QuadrupleActType(Enum):
     SHIFT = auto()
@@ -127,14 +64,6 @@ class QuadrupleTransition:
         result += self.destination_state
 
         return result
-    
-@dataclass
-class QuintupleTuringMachineDefinition:
-    tapes: int
-    alphabet: List[Any]
-    transitions: List[QuintupleTransition]
-    initial_state: str
-    final_states: List[str]
 
 @dataclass
 class QuadrupleTuringMachineDefinition:
@@ -151,29 +80,6 @@ class QuadrupleTuringMachineDefinition:
 
         return None
 
-class Tape:
-    head: int
-    content: Dict[int, Any]
-
-    def __init__(self):
-        self.head = 0
-        self.content = {}
-
-    def read(self) -> Any:
-        return self.content.get(self.head, "B")
-
-    def write(self, mark: Any):
-        self.content[self.head] = mark
-
-    def shift(self, direction: Direction):
-        self.head += direction.value
-    
-    def overwrite(self, content: List[Any]):
-        self.content.clear()
-
-        for i, mark in enumerate(content):
-            self.content[i] = mark
-
 class QuadrupleTuringMachineSimulator:
     definition: QuadrupleTuringMachineDefinition
 
@@ -186,23 +92,11 @@ class QuadrupleTuringMachineSimulator:
         self.definition = definition
         self.current_state = definition.initial_state
     
-    def run(self, max_steps=math.inf) -> None:
-        current_step = 0
-
-        while current_step < max_steps:
-            if not self.step():
-                return True
-
-            current_step += 1
-        
-        return False
-    
     def step(self):
-        heads = [tape.head for tape in self.tapes]
-        transition = self.find_next_transition()
+        transition = self._find_next_transition()
 
         if transition is None:
-            return False
+            return None
 
         for i, act in enumerate(transition.acts):
             if act.kind == QuadrupleActType.READ_WRITE:
@@ -212,11 +106,7 @@ class QuadrupleTuringMachineSimulator:
         
         self.current_state = transition.destination_state
 
-        return True
-    
-    def find_next_transition(self) -> Optional[QuadrupleTransition]:
-        data = [tape.read() for tape in self.tapes]
-        return self.definition.find_matching_transition(self.current_state, data)
+        return transition
     
     def has_halted(self) -> bool:
         return self.has_accepted() or self.has_rejected()
@@ -227,7 +117,9 @@ class QuadrupleTuringMachineSimulator:
     def has_rejected(self) -> bool:
         if self.has_accepted():
             return False
-        
-        data = [tape.read() for tape in self.tapes]
 
-        return self.definition.find_matching_transition(self.current_state, data) is None
+        return self._find_next_transition() is None
+    
+    def _find_next_transition(self) -> Optional[QuadrupleTransition]:
+        data = [tape.read() for tape in self.tapes]
+        return self.definition.find_matching_transition(self.current_state, data)

@@ -1,10 +1,10 @@
-import pygame
 import sys
 import copy
-from ui_elements import Button, Slider
-from structures import QuadrupleTransition, Tape, Direction, QuadrupleTuringMachineSimulator, QuadrupleTuringMachineDefinition, QuintupleTuringMachineDefinition, QuintupleTransition
-from main import create_reversible_machine
-from tape_gui import TapeGUI 
+import pygame
+
+from gui.button import Button
+from gui.slider import Slider
+from gui.tape_view import TapeView 
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -16,7 +16,7 @@ WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 700
 FPS = 60
 
-class TuringMachineGUI:
+class GUI:
     def __init__(self, simulator, all_transitions):
         pygame.init()
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -41,9 +41,9 @@ class TuringMachineGUI:
         self.hovered_button = None
 
         self.tape_guis = [
-            TapeGUI(self.simulation_steps[0]["tapes"][0], 170, "Working Tape"),
-            TapeGUI(self.simulation_steps[0]["tapes"][1], 310, "History Tape"),
-            TapeGUI(self.simulation_steps[0]["tapes"][2], 450, "Output Tape")
+            TapeView(self.simulation_steps[0]["tapes"][0], 170, "Working Tape"),
+            TapeView(self.simulation_steps[0]["tapes"][1], 310, "History Tape"),
+            TapeView(self.simulation_steps[0]["tapes"][2], 450, "Output Tape")
         ]
 
     def create_buttons(self):
@@ -87,12 +87,12 @@ class TuringMachineGUI:
         })
         
         step = 0
-        while not simulator_copy.has_halted() and step < 1000:  
-            transition = simulator_copy.find_next_transition()
+        while step < 1000:  
+            transition = simulator_copy.step()
+
             if transition is None:
                 break
-                
-            simulator_copy.step()
+
             step += 1
             
             self.simulation_steps.append({
