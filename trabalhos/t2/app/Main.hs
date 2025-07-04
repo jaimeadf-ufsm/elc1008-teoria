@@ -13,24 +13,6 @@ data TermNameL
   | AppN TermNameL TermNameL
   deriving (Eq, Show)
 
-exC0 :: Term
-exC0 = Abs 's' (Abs 'z' (Var 'z'))
-
-exC1 :: Term
-exC1 = Abs 's' (Abs 'z' (App (Var 's') (Var 'z')))
-
-exC2 :: Term
-exC2 = Abs 's' (Abs 'z' (App (Var 's') (App (Var 's') (Var 'z'))))
-
-exPlus :: Term
-exPlus = Abs 'm' (Abs 'n' (Abs 's' (Abs 'z' (App (App (Var 'm') (Var 's')) (App (App (Var 'n') (Var 's')) (Var 'z'))))))
-
-exC1PlusC0 :: Term
-exC1PlusC0 = App (App exPlus exC1) exC0
-
-exC1PlusC1 :: Term
-exC1PlusC1 = App (App exPlus exC1) exC1
-
 type Gamma = [Char]
 
 -- encontra as variáveis livres de um termo
