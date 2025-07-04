@@ -1,0 +1,1 @@
+(((λf. (λx. f (λv. x x v)) (λx. f (λv. x x v))))(λh. λn.  (λp.λa.λb. p a b) ( (λn. n (λx. (λt.λf. f)) (λt.λf. t)) n) (λt.λf. t) (h ((λn.λf.λx. n (λg.λh. h (g f)) (λu. x) (λu. u)) n))))(λf.λx. x)

@@ -1,0 +1,19 @@
+ZERO     ≡ (λf.λx. x)
+ONE      ≡ (λf.λx. f x)
+TWO      ≡ (λf.λx. f (f x))
+THREE    ≡ (λf.λx. f (f (f x)))
+
+SUCC     ≡ (λn.λf.λx. f (n f x))
+ADD      ≡ (λm.λn.λf.λx. m f (n f x))
+MUL      ≡ (λm.λn.λf. m (n f))
+PRED     ≡ (λn.λf.λx. n (λg.λh. h (g f)) (λu. x) (λu. u))
+
+TRUE     ≡ (λt.λf. t)
+FALSE    ≡ (λt.λf. f)
+IF       ≡ (λp.λa.λb. p a b)
+
+ISZERO   ≡ (λn. n (λx. FALSE) TRUE)
+
+Z        ≡ (λf. (λx. f (λv. x x v)) (λx. f (λv. x x v)))
+
+FACT     ≡ Z (λh. λn.  IF (ISZERO n) ONE (MUL n (h (PRED n))))
