@@ -41,7 +41,7 @@ shift d c (VarN x) = if x >= c then VarN (x + d) else VarN x
 shift d c (AbsN t) = AbsN (shift d (c + 1) t)
 shift d c (AppN t1 t2) = AppN (shift d c t1) (shift d c t2)
 
--- substNitui a variável x por s no termo t
+-- substitui a variável x por s no termo t
 substN :: Int -> TermNameL -> TermNameL -> TermNameL
 substN x s (VarN y) = if x == y then s else VarN y
 substN x s (AbsN t) = AbsN (substN (x + 1) (shift 1 0 s) t)
@@ -56,11 +56,11 @@ isValueN (AppN _ _) = False
 -- avalia um termo, aplicando a semântica operacional call-by-value
 evalN :: TermNameL -> TermNameL
 evalN (AppN (AbsN t12) t2)
-  | isValueN t2 = shift (-1) 0 (substN 0 (shift 1 0 t2) t12)
+  | isValueN t2 = shift (-1) 0 (substN 0 (shift 1 0 t2) t12) -- E-APPABS
 evalN (AppN t1 t2)
-  | isValueN t1 = AppN t1 (evalN t2)
-  | otherwise = AppN (evalN t1) t2
-evalN (AbsN t) = AbsN (evalN t)
+  | isValueN t1 = AppN t1 (evalN t2) -- E-APP2
+  | otherwise = AppN (evalN t1) t2 -- E-APP1
+evalN (AbsN t) = AbsN t
 evalN (VarN x) = VarN x
 
 -- avalia um termo até que não haja mais redex
